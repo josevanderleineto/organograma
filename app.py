@@ -52,7 +52,7 @@ def criar_organograma():
     return org
 
 # Interface com Streamlit
-st.title('Organograma Colorido da Biblioteca do Instituto Histórico Geográfico da Bahia')
+st.title('Organograma  da Biblioteca do Instituto Histórico Geográfico da Bahia')
 
 # Gerar organograma
 organograma_colorido = criar_organograma()
