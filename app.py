@@ -1,5 +1,7 @@
 import streamlit as st
 from graphviz import Digraph
+from PIL import Image
+import io
 
 # Função para criar o organograma com quadros coloridos e organizados, incluindo tooltips
 def criar_organograma():
@@ -59,11 +61,33 @@ def criar_organograma():
 
     return org
 
+# Função para gerar e baixar a imagem do organograma
+def gerar_e_baixar_imagem(organograma, formato='png'):
+    # Renderizar o organograma para um arquivo binário no formato solicitado
+    img_bytes = organograma.pipe(format=formato)
+
+    # Retornar os bytes da imagem para o download
+    return img_bytes
+
 # Interface com Streamlit
 st.title('Organograma da Biblioteca do Instituto Histórico Geográfico da Bahia')
 
 # Gerar organograma
-organograma_colorido = criar_organograma()
+organograma = criar_organograma()
 
-# Exibir organograma
-st.graphviz_chart(organograma_colorido.source)
+# Exibir organograma no aplicativo
+st.graphviz_chart(organograma.source)
+
+# Opção para escolher o formato da imagem
+formato_imagem = st.selectbox('Escolha o formato para baixar a imagem:', ['png', 'jpeg'])
+
+# Gerar a imagem no formato escolhido
+img_bytes = gerar_e_baixar_imagem(organograma, formato=formato_imagem)
+
+# Adicionar botão de download
+st.download_button(
+    label="Baixar Organograma",
+    data=img_bytes,
+    file_name=f'organograma.{formato_imagem}',
+    mime=f'image/{formato_imagem}'
+)
