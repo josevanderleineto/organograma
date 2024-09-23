@@ -17,42 +17,50 @@ def criar_organograma():
              tooltip='Biblioteca especializada em estudos históricos e geográficos da Bahia.')
     org.edge('Instituto', 'Biblioteca')
 
-    # Nível 3: Staff da Biblioteca (Chefe, Sênior, Júnior)
+    # Nível 3: Staff da Biblioteca (Chefe, Júnior)
     org.node('Chefe', 'Bibliotecária Chefe', color='lightgray', fontcolor='black', 
              tooltip='Gestor da biblioteca, responsável pelo processamento técnico da unidade.')
-    org.node('Senior', 'Bibliotecário Sênior', color='lightgray', fontcolor='black', 
-             tooltip='Auxilia o Chefe nas operações e coordena tarefas técnicas.')
+    
+    # Adicionar Secretária para o Bibliotecário Chefe
+    org.node('Secretaria', 'Secretária', color='lightgray', fontcolor='black', 
+             tooltip='Secretária do Bibliotecário Chefe, auxiliando nas tarefas administrativas.')
+    org.edge('Chefe', 'Secretaria')
+
+    # Nível 3: Bibliotecário Júnior
     org.node('Junior', 'Bibliotecário Júnior', color='lightgray', fontcolor='black', 
              tooltip='Responsável pelo serviço de referência e coordenação dos auxiliares. Também auxilia na classificação de obras antigas e no suporte a pesquisadores.')
+    
+    # Ligações entre o Chefe e o Júnior
+    org.edge('Biblioteca', 'Chefe')
+    org.edge('Chefe', 'Junior')
+
+    # Nível 4: Paleógrafo e Restaurador ao lado do Bibliotecário Júnior
     org.node('Paleografo', 'Paleógrafo', color='lightgray', fontcolor='black', 
              tooltip='Responsável pela análise e transcrição de manuscritos históricos.')
+    
+    org.node('Restaurador', 'Restaurador (Terceirizado)', color='lightgray', fontcolor='black', 
+             tooltip='Consultor responsável pela restauração de obras danificadas.')
 
-    # Ligações entre o nível 2 e 3 (Chefe, Sênior, Júnior e Paleógrafo)
-    org.edge('Biblioteca', 'Chefe')
-    org.edge('Chefe', 'Senior')
-    org.edge('Senior', 'Junior')
-    org.edge('Junior', 'Paleografo')  # Paleógrafo ao lado do Júnior
+    # Conectar Paleógrafo e Restaurador ao Junior (lado a lado)
+    org.edge('Junior', 'Paleografo')
+    org.edge('Junior', 'Restaurador')
 
-    # Nível 4: Auxiliares de Biblioteca
+    # Nível 4: Auxiliares de Biblioteca e Estagiários
     for i in range(1, 5):
         org.node(f'Auxiliar{i}', f'Auxiliar de Biblioteca {i}', color='lightgray', fontcolor='black', 
                  tooltip='Auxilia a equipe técnica, auxilia pesquisadores e classifica obras antigas.')
         org.edge('Junior', f'Auxiliar{i}')  # Auxiliares abaixo do Júnior
-    
-    # Nível 4: Restaurador
-    org.node('Restaurador', 'Restaurador', color='lightgray', fontcolor='black', 
-             tooltip='Trabalha no processo de restauração de obras danificadas.')
-    org.edge(f'Auxiliar1', 'Restaurador')  # Restaurador ligado ao primeiro auxiliar
 
-    # Nível 4: Estagiário
-    org.node('Estagiario', 'Estagiário', color='lightgray', fontcolor='black', 
-             tooltip='Apoia em diversas tarefas sem responsabilidades específicas.')
-    org.edge(f'Auxiliar2', 'Estagiario')  # Estagiário ligado ao segundo auxiliar
+        # Adicionar dois estagiários para cada auxiliar
+        for j in range(1, 3):
+            org.node(f'Estagiario{i}_{j}', f'Estagiário {i}-{j}', color='lightgray', fontcolor='black', 
+                     tooltip='Apoia em diversas tarefas sem responsabilidades específicas.')
+            org.edge(f'Auxiliar{i}', f'Estagiario{i}_{j}')  # Estagiários ligados aos Auxiliares
 
     return org
 
 # Interface com Streamlit
-st.title('Organograma  da Biblioteca do Instituto Histórico Geográfico da Bahia')
+st.title('Organograma da Biblioteca do Instituto Histórico Geográfico da Bahia')
 
 # Gerar organograma
 organograma_colorido = criar_organograma()
