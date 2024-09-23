@@ -1,72 +1,61 @@
 import streamlit as st
-from graphviz import Digraph
+import pydot
 import base64
+from io import BytesIO
+import networkx as nx
 
 # Função para criar o organograma
 def criar_organograma():
-    org = Digraph(comment='Organograma da Biblioteca do Instituto Histórico Geográfico da Bahia')
+    G = nx.DiGraph()
 
-    # Definições gerais de estilo
-    org.attr('node', shape='box', style='filled', fontcolor='black')
-
-    # Nível 1: Instituto
-    org.node('Instituto', 'Instituto Histórico Geográfico da Bahia', color='lightcoral', 
-             tooltip='Instituição mantenedora da Biblioteca Ruy Barbosa.')
-
-    # Nível 2: Biblioteca Ruy Barbosa
-    org.node('Biblioteca', 'Biblioteca Ruy Barbosa', color='lightgoldenrod1', 
-             tooltip='Biblioteca especializada em estudos históricos e geográficos da Bahia.')
-    org.edge('Instituto', 'Biblioteca')
-
-    # Nível 3: Staff da Biblioteca (Chefe, Júnior)
-    org.node('Chefe', 'Bibliotecária Chefe', color='lightgray', 
-             tooltip='Gestor da biblioteca, responsável pelo processamento técnico da unidade.')
-    org.edge('Biblioteca', 'Chefe')
-
-    org.node('Junior', 'Bibliotecário Júnior', color='lightgray', 
-             tooltip='Responsável pelo serviço de referência e coordenação dos auxiliares.')
-    org.edge('Chefe', 'Junior')
-
-    # Nível 4: Auxiliares de Biblioteca
+    # Adicionando nós
+    G.add_node('Instituto', tooltip='Instituição mantenedora da Biblioteca Ruy Barbosa.')
+    G.add_node('Biblioteca', tooltip='Biblioteca especializada em estudos históricos e geográficos da Bahia.')
+    G.add_node('Chefe', tooltip='Gestor da biblioteca, responsável pelo processamento técnico da unidade.')
+    G.add_node('Junior', tooltip='Responsável pelo serviço de referência e coordenação dos auxiliares.')
+    
     for i in range(1, 5):
-        org.node(f'Auxiliar{i}', f'Auxiliar de Biblioteca {i}', color='lightgray', 
-                 tooltip='Auxilia a equipe técnica e os pesquisadores.')
-        org.edge('Junior', f'Auxiliar{i}')
+        G.add_node(f'Auxiliar{i}', tooltip='Auxilia a equipe técnica e os pesquisadores.')
+        G.add_node(f'Estagiario{i}', tooltip='Apoia em diversas tarefas sem responsabilidades específicas.')
+    
+    G.add_node('Paleografo', tooltip='Responsável pela análise e transcrição de manuscritos históricos.')
+    G.add_node('Restaurador', tooltip='Consultor responsável pela restauração de obras danificadas.')
 
-        # Estagiários
-        for j in range(1, 3):
-            org.node(f'Estagiario{i}_{j}', f'Estagiário {i}-{j}', color='lightgray', 
-                     tooltip='Apoia em diversas tarefas sem responsabilidades específicas.')
-            org.edge(f'Auxiliar{i}', f'Estagiario{i}_{j}')
+    # Adicionando arestas
+    G.add_edges_from([
+        ('Instituto', 'Biblioteca'),
+        ('Biblioteca', 'Chefe'),
+        ('Chefe', 'Junior'),
+        ('Junior', 'Auxiliar1'),
+        ('Junior', 'Auxiliar2'),
+        ('Junior', 'Auxiliar3'),
+        ('Junior', 'Auxiliar4'),
+        ('Junior', 'Paleografo'),
+        ('Junior', 'Restaurador'),
+        ('Auxiliar1', 'Estagiario1'),
+        ('Auxiliar1', 'Estagiario2'),
+        # Adicione mais estagiários conforme necessário
+    ])
 
-    # Nível 4: Paleógrafo
-    org.node('Paleografo', 'Paleógrafo', color='lightgray', 
-             tooltip='Responsável pela análise e transcrição de manuscritos históricos.')
-    org.edge('Junior', 'Paleografo')
+    return G
 
-    # Nível 4: Restaurador como Consultor
-    org.node('Restaurador', 'Restaurador (Consultor)', color='lightgray', 
-             tooltip='Consultor responsável pela restauração de obras danificadas.')
-    org.edge('Junior', 'Restaurador')
-
-    return org
-
-# Função para gerar e baixar a imagem do organograma
-def gerar_imagem(org):
-    img_bytes = org.pipe(format='png')  # Gera a imagem no formato PNG
+# Função para gerar a imagem do organograma
+def gerar_imagem(G):
+    dot = nx.drawing.nx_pydot.to_pydot(G)
+    img_bytes = dot.create(format='png')
     return img_bytes
 
 # Interface com Streamlit
 st.title('Organograma da Biblioteca do Instituto Histórico Geográfico da Bahia')
 
-# Gerar organograma
+# Criar organograma
 organograma = criar_organograma()
 
-# Exibir organograma
-st.graphviz_chart(organograma.source)
-
-# Gerar a imagem para download
+# Gerar a imagem
 img_bytes = gerar_imagem(organograma)
+
+# Exibir imagem no Streamlit
+st.image(img_bytes, caption='Organograma', use_column_width=True)
 
 # Converter bytes em base64 para download
 b64 = base64.b64encode(img_bytes).decode()
