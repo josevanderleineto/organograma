@@ -2,3 +2,4 @@ streamlit
 pydot
 graphviz
 Pillow  # Para manipulação de imagens, se necessário
+networkx
