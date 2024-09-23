@@ -1,25 +1,59 @@
 import streamlit as st
-import pydot
-from PIL import Image
-import io
+from graphviz import Digraph
+import base64
 
-# Função para criar o organograma com pydot
+# Função para criar o organograma
 def criar_organograma():
-    graph = pydot.Dot(graph_type='digraph')
+    org = Digraph(comment='Organograma da Biblioteca do Instituto Histórico Geográfico da Bahia')
 
-    # Adicionando nós e arestas
-    graph.add_node(pydot.Node("Instituto", label="Instituto Histórico Geográfico da Bahia", style="filled", fillcolor="lightcoral"))
-    graph.add_node(pydot.Node("Biblioteca", label="Biblioteca Ruy Barbosa", style="filled", fillcolor="lightgoldenrod1"))
-    graph.add_edge(pydot.Edge("Instituto", "Biblioteca"))
+    # Definições gerais de estilo
+    org.attr('node', shape='box', style='filled', fontcolor='black')
 
-    # Continuar adicionando nós e arestas como no seu código anterior...
-    # ...
+    # Nível 1: Instituto
+    org.node('Instituto', 'Instituto Histórico Geográfico da Bahia', color='lightcoral', 
+             tooltip='Instituição mantenedora da Biblioteca Ruy Barbosa.')
 
-    return graph
+    # Nível 2: Biblioteca Ruy Barbosa
+    org.node('Biblioteca', 'Biblioteca Ruy Barbosa', color='lightgoldenrod1', 
+             tooltip='Biblioteca especializada em estudos históricos e geográficos da Bahia.')
+    org.edge('Instituto', 'Biblioteca')
 
-# Função para gerar e salvar a imagem do organograma
-def gerar_imagem(graph, formato='png'):
-    img_bytes = graph.create(format=formato)
+    # Nível 3: Staff da Biblioteca (Chefe, Júnior)
+    org.node('Chefe', 'Bibliotecária Chefe', color='lightgray', 
+             tooltip='Gestor da biblioteca, responsável pelo processamento técnico da unidade.')
+    org.edge('Biblioteca', 'Chefe')
+
+    org.node('Junior', 'Bibliotecário Júnior', color='lightgray', 
+             tooltip='Responsável pelo serviço de referência e coordenação dos auxiliares.')
+    org.edge('Chefe', 'Junior')
+
+    # Nível 4: Auxiliares de Biblioteca
+    for i in range(1, 5):
+        org.node(f'Auxiliar{i}', f'Auxiliar de Biblioteca {i}', color='lightgray', 
+                 tooltip='Auxilia a equipe técnica e os pesquisadores.')
+        org.edge('Junior', f'Auxiliar{i}')
+
+        # Estagiários
+        for j in range(1, 3):
+            org.node(f'Estagiario{i}_{j}', f'Estagiário {i}-{j}', color='lightgray', 
+                     tooltip='Apoia em diversas tarefas sem responsabilidades específicas.')
+            org.edge(f'Auxiliar{i}', f'Estagiario{i}_{j}')
+
+    # Nível 4: Paleógrafo
+    org.node('Paleografo', 'Paleógrafo', color='lightgray', 
+             tooltip='Responsável pela análise e transcrição de manuscritos históricos.')
+    org.edge('Junior', 'Paleografo')
+
+    # Nível 4: Restaurador como Consultor
+    org.node('Restaurador', 'Restaurador (Consultor)', color='lightgray', 
+             tooltip='Consultor responsável pela restauração de obras danificadas.')
+    org.edge('Junior', 'Restaurador')
+
+    return org
+
+# Função para gerar e baixar a imagem do organograma
+def gerar_imagem(org):
+    img_bytes = org.pipe(format='png')  # Gera a imagem no formato PNG
     return img_bytes
 
 # Interface com Streamlit
@@ -28,19 +62,13 @@ st.title('Organograma da Biblioteca do Instituto Histórico Geográfico da Bahia
 # Gerar organograma
 organograma = criar_organograma()
 
-# Exibir organograma no aplicativo
-st.graphviz_chart(organograma.to_string())
+# Exibir organograma
+st.graphviz_chart(organograma.source)
 
-# Opção para escolher o formato da imagem
-formato_imagem = st.selectbox('Escolha o formato para baixar a imagem:', ['png', 'jpeg'])
+# Gerar a imagem para download
+img_bytes = gerar_imagem(organograma)
 
-# Gerar a imagem no formato escolhido
-img_bytes = gerar_imagem(organograma, formato=formato_imagem)
-
-# Adicionar botão de download
-st.download_button(
-    label="Baixar Organograma",
-    data=img_bytes,
-    file_name=f'organograma.{formato_imagem}',
-    mime=f'image/{formato_imagem}'
-)
+# Converter bytes em base64 para download
+b64 = base64.b64encode(img_bytes).decode()
+href = f'<a href="data:file/png;base64,{b64}" download="organograma.png">Baixar Organograma</a>'
+st.markdown(href, unsafe_allow_html=True)
