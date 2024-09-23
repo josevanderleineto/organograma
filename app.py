@@ -81,7 +81,7 @@ st.graphviz_chart(organograma.source)
 # Opção para escolher o formato da imagem
 formato_imagem = st.selectbox('Escolha o formato para baixar a imagem:', ['png', 'jpeg'])
 
-# Gerar a imagem no formato escolhido
+# Gerar a imagem no formato escolhidof
 img_bytes = gerar_e_baixar_imagem(organograma, formato=formato_imagem)
 
 # Adicionar botão de download
